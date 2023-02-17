@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выгрузка данных</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+    <style>
+        body {
+            margin: 3px;
+        }
+
+        .insert {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+        }
+
+        textarea {
+            height: 28px;
+            resize: none;
+        }
+
+        input {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <div class="insert">
+            {% csrf_token %}
+            <button class="btn btn-info" onclick="downloadData()">Скачать в формате .xlsx</button>
+            <input type="file" id="upload_file" value="Загрузить данные из файла..." class="btn btn-info">
+        </div>
+        <table class="table table-striped" id="table" cellspacing="5" cellpadding="5">
+            <thead>
+                <th>Название диалога</th>
+                <th>Дата создания</th>
+                <th>Ссылка для скачивания</th>
+                <th>Ссылка на сайт</th>
+                <th>Оценка пользователем</th>
+                <th>Кол-во стримеров</th>
+                <th>Проведен ли стрим</th>
+                <th>Длительность</th>
+            </thead>
+            
+            {% for field in DATA %}
+            <tr>
+                <td>{{ field.title|default_if_none:"" }}</td>
+                <td>{{ field.createdAt|default_if_none:"" }}</td>
+                <td><a href='{{ field.logUrl|default_if_none:"" }}'>{{ field.logUrl|default_if_none:"" }}</a></td>
+                <td><a href='{{ field.websiteUrl|default_if_none:"" }}'>{{ field.websiteUrl|default_if_none:"" }}</a></td>
+                <td>{{ field.rating|default_if_none:"" }}</td>
+                <td>{{ field.streamsNumber|default_if_none:"" }}</td>
+                <td>{{ field.isStreamMade|default_if_none:"" }}</td>
+                <td>{{ field.duration|default_if_none:"" }}</td>
+            {% endfor %}
+            </tr>
+            
+        </table>
+    </div>
+
+
+    <script>
+        /*
+        * FileSaver.js
+        * A saveAs() FileSaver implementation.
+        *
+        * By Eli Grey, http://eligrey.com
+        *
+        * License : https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md (MIT)
+        * source  : http://purl.eligrey.com/github/FileSaver.js
+        */
+
+        // The one and only way of getting global scope in all environments
+        // https://stackoverflow.com/q/3277182/1008999
+        var _global = typeof window === 'object' && window.window === window
+        ? window : typeof self === 'object' && self.self === self
+        ? self : typeof global === 'object' && global.global === global
+        ? global
+        : this
+
+        function bom (blob, opts) {
+        if (typeof opts === 'undefined') opts = { autoBom: false }
+        else if (typeof opts !== 'object') {
+            console.warn('Deprecated: Expected third argument to be a object')
+            opts = { autoBom: !opts }
+        }
+
+        // prepend BOM for UTF-8 XML and text/* types (including HTML)
+        // note: your browser will automatically convert UTF-16 U+FEFF to EF BB BF
+        if (opts.autoBom && /^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(blob.type)) {
+            return new Blob([String.fromCharCode(0xFEFF), blob], { type: blob.type })
+        }
+        return blob
+        }
+
+        function download (url, name, opts) {
+        var xhr = new XMLHttpRequest()
+        xhr.open('GET', url)
+        xhr.responseType = 'blob'
+        xhr.onload = function () {
+            saveAs(xhr.response, name, opts)
+        }
+        xhr.onerror = function () {
+            console.error('could not download file')
+        }
+        xhr.send()
+        }
+
+        function corsEnabled (url) {
+        var xhr = new XMLHttpRequest()
+        // use sync to avoid popup blocker
+        xhr.open('HEAD', url, false)
+        try {
+            xhr.send()
+        } catch (e) {}
+        return xhr.status >= 200 && xhr.status <= 299
+        }
+
+        // `a.click()` doesn't work for all browsers (#465)
+        function click (node) {
+        try {
+            node.dispatchEvent(new MouseEvent('click'))
+        } catch (e) {
+            var evt = document.createEvent('MouseEvents')
+            evt.initMouseEvent('click', true, true, window, 0, 0, 0, 80,
+                                20, false, false, false, false, 0, null)
+            node.dispatchEvent(evt)
+        }
+        }
+
+        // Detect WebView inside a native macOS app by ruling out all browsers
+        // We just need to check for 'Safari' because all other browsers (besides Firefox) include that too
+        // https://www.whatismybrowser.com/guides/the-latest-user-agent/macos
+        var isMacOSWebView = _global.navigator && /Macintosh/.test(navigator.userAgent) && /AppleWebKit/.test(navigator.userAgent) && !/Safari/.test(navigator.userAgent)
+
+        var saveAs = _global.saveAs || (
+        // probably in some web worker
+        (typeof window !== 'object' || window !== _global)
+            ? function saveAs () { /* noop */ }
+
+        // Use download attribute first if possible (#193 Lumia mobile) unless this is a macOS WebView
+        : ('download' in HTMLAnchorElement.prototype && !isMacOSWebView)
+        ? function saveAs (blob, name, opts) {
+            var URL = _global.URL || _global.webkitURL
+            // Namespace is used to prevent conflict w/ Chrome Poper Blocker extension (Issue #561)
+            var a = document.createElementNS('http://www.w3.org/1999/xhtml', 'a')
+            name = name || blob.name || 'download'
+
+            a.download = name
+            a.rel = 'noopener' // tabnabbing
+
+            // TODO: detect chrome extensions & packaged apps
+            // a.target = '_blank'
+
+            if (typeof blob === 'string') {
+            // Support regular links
+            a.href = blob
+            if (a.origin !== location.origin) {
+                corsEnabled(a.href)
+                ? download(blob, name, opts)
+                : click(a, a.target = '_blank')
+            } else {
+                click(a)
+            }
+            } else {
+            // Support blobs
+            a.href = URL.createObjectURL(blob)
+            setTimeout(function () { URL.revokeObjectURL(a.href) }, 4E4) // 40s
+            setTimeout(function () { click(a) }, 0)
+            }
+        }
+
+        // Use msSaveOrOpenBlob as a second approach
+        : 'msSaveOrOpenBlob' in navigator
+        ? function saveAs (blob, name, opts) {
+            name = name || blob.name || 'download'
+
+            if (typeof blob === 'string') {
+            if (corsEnabled(blob)) {
+                download(blob, name, opts)
+            } else {
+                var a = document.createElement('a')
+                a.href = blob
+                a.target = '_blank'
+                setTimeout(function () { click(a) })
+            }
+            } else {
+            navigator.msSaveOrOpenBlob(bom(blob, opts), name)
+            }
+        }
+
+        // Fallback to using FileReader and a popup
+        : function saveAs (blob, name, opts, popup) {
+            // Open a popup immediately do go around popup blocker
+            // Mostly only available on user interaction and the fileReader is async so...
+            popup = popup || open('', '_blank')
+            if (popup) {
+            popup.document.title =
+            popup.document.body.innerText = 'downloading...'
+            }
+
+            if (typeof blob === 'string') return download(blob, name, opts)
+
+            var force = blob.type === 'application/octet-stream'
+            var isSafari = /constructor/i.test(_global.HTMLElement) || _global.safari
+            var isChromeIOS = /CriOS\/[\d]+/.test(navigator.userAgent)
+
+            if ((isChromeIOS || (force && isSafari) || isMacOSWebView) && typeof FileReader !== 'undefined') {
+            // Safari doesn't allow downloading of blob URLs
+            var reader = new FileReader()
+            reader.onloadend = function () {
+                var url = reader.result
+                url = isChromeIOS ? url : url.replace(/^data:[^;]*;/, 'data:attachment/file;')
+                if (popup) popup.location.href = url
+                else location = url
+                popup = null // reverse-tabnabbing #460
+            }
+            reader.readAsDataURL(blob)
+            } else {
+            var URL = _global.URL || _global.webkitURL
+            var url = URL.createObjectURL(blob)
+            if (popup) popup.location = url
+            else location.href = url
+            popup = null // reverse-tabnabbing #460
+            setTimeout(function () { URL.revokeObjectURL(url) }, 4E4) // 40s
+            }
+        }
+        )
+
+        _global.saveAs = saveAs.saveAs = saveAs
+
+        if (typeof module !== 'undefined') {
+        module.exports = saveAs;
+        }
+    </script>
+    <script>
+        let fetchedData = {}
+        function downloadData() {
+            fetch('/api/get-all/')
+            .then((response) => {
+                return response.json();
+            })
+            .then((data) => {
+                // make xlsx file
+                fetchedData = data;
+                console.log(fetchedData);
+
+                let wb = XLSX.utils.book_new();
+                wb.Props = {
+                    Title: "Данные",
+                    Subject: "Diversity Nivea",
+                    Author: "Diversity Nivea"
+                };
+                wb.SheetNames.push('New Sheet');
+                
+                let ws_data = []
+                // DEFINE FIELDS HERE
+                ws_data[0] = [
+                    "Название диалога", 
+                    "Дата создания", 
+                    "Ссылка для скачивания", 
+                    "Ссылка на сайт", 
+                    "Оценка пользователем", 
+                    "Кол-во стримеров", 
+                    "Проведен ли стрим", 
+                    "Длительность",
+                    
+                ]
+                for (let i = 0; i < Object.keys(data).length; i++) {
+                    ws_data[i+1] = [
+                        data[i].title,
+                        data[i].createdAt,
+                        data[i].logUrl,
+                        data[i].websiteUrl,
+                        data[i].rating,
+                        data[i].streamsNumber,
+                        data[i].isStreamMade,
+                        data[i].duration
+                ]}
+
+                let ws = XLSX.utils.aoa_to_sheet(ws_data);
+                wb.Sheets['New Sheet'] = ws;
+
+                let wbout = XLSX.write(wb, {bookType: 'xlsx', type: 'binary'});
+
+                function s2ab(s) { 
+                    var buf = new ArrayBuffer(s.length); //convert s to arrayBuffer
+                    var view = new Uint8Array(buf);  //create uint8array as viewer
+                    for (var i=0; i<s.length; i++) view[i] = s.charCodeAt(i) & 0xFF; //convert to octet
+                    return buf;    
+                }
+
+                window.saveAs(new Blob([s2ab(wbout)], {type:"application/octet-stream"}), 'diversitynivea.xlsx');
+            });
+        };
+    </script>
+    <script>
+        const inputElement = document.getElementById('upload_file');
+        inputElement.addEventListener('change', handleFiles, false);
+        function handleFiles() {
+            const fileList = this.files;
+            file = fileList[0];
+            console.log(file)
+            csrf_token = "{{csrf_token}}";
+            let data = new FormData();
+            data.append('file', file)
+
+            fetch('/api/upload/file/', {
+                method: 'POST',
+                headers: {
+                    // 'Content-Type': 'multipart/form-data',
+                    'X-CSRFToken': csrf_token
+                },
+                body: data
+            })
+            function delay(time) {
+                return new Promise(resolve => setTimeout(resolve, time));
+            }
+            delay(1000).then(() => window.location.reload());
+            
+        }
+    </script>
+    <script lang="javascript" src="https://cdn.sheetjs.com/xlsx-0.19.2/package/dist/xlsx.full.min.js"></script>
+    
+</body>
+</html>

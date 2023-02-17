@@ -1,0 +1,47 @@
+version: '3.7'
+services:
+  web:
+    container_name: core_app
+    build: .
+    restart: always
+    env_file: .env
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "python manage.py migrate &&
+      python manage.py runserver"
+    volumes:
+     - .:/app
+     - static_volume:/app/static
+  redis:
+    image: redis:alpine
+    volumes:
+      - redis_data:/data
+  celery:
+    restart: always
+    build:
+      context: .
+    command: celery -A diversity worker -l info
+    volumes:
+      - celery_data:/data
+    env_file: .env
+    depends_on:
+      - redis
+      - web
+  celery-beat:
+    restart: always
+    build:
+      context: .
+    command: celery -A diversity beat -l info
+    volumes:
+      - celery_beat_data:/data
+    env_file: .env
+    depends_on:
+      - redis
+      - web
+
+volumes:
+  static_volume:
+  celery_data:
+  redis_data:
+  celery_beat_data:
