@@ -9,7 +9,7 @@ services:
       - "5000:5000"
     command: >
       sh -c "python manage.py migrate &&
-      gunicorn src.asgi -w 2 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:5000"
+      gunicorn diversity.asgi -w 2 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:5000"
     volumes:
      - .:/app
      - static_volume:/app/static
