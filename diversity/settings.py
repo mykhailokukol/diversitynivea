@@ -128,7 +128,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 ROOT_URLCONF = 'diversity.urls'
 
-REDIS_LOCAL_HOST = '127.0.0.1'
+REDIS_LOCAL_HOST = 'redis'
 if os.getenv('REDIS') == 'DEV':
     CELERY_BROKER_URL = 'redis://default:redispw@localhost:49164'
 else:
