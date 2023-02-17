@@ -20,6 +20,7 @@ eventlet==0.33.3
 greenlet==2.0.2
 idna==3.4
 kombu==5.2.4
+mysqlclient==2.1.1
 numpy==1.24.2
 openpyxl==3.1.1
 pandas==1.5.3
