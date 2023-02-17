@@ -9,7 +9,7 @@ services:
       - "8000:8000"
     command: >
       sh -c "python manage.py migrate &&
-      python manage.py runserver"
+      python manage.py runserver 185.46.11.148:8000"
     volumes:
      - .:/app
      - static_volume:/app/static
