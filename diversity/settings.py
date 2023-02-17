@@ -19,7 +19,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['185.46.11.148:5000', 'thediversitynivea.ru']
+ALLOWED_HOSTS = ['185.46.11.148', 'thediversitynivea.ru']
 
 
 # Application definition
