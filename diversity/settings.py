@@ -132,7 +132,7 @@ REDIS_LOCAL_HOST = '127.0.0.1'
 if os.getenv('REDIS') == 'DEV':
     CELERY_BROKER_URL = 'redis://default:redispw@localhost:49164'
 else:
-    REDIS_LOCAL_PORT = '9001'
+    REDIS_LOCAL_PORT = '6379'
     CELERY_BROKER_URL = 'redis://' + REDIS_LOCAL_HOST + ':' + REDIS_LOCAL_PORT + '/1'
     CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
