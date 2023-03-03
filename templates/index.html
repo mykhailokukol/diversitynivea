@@ -38,6 +38,7 @@
         <table class="table table-striped" id="table" cellspacing="5" cellpadding="5">
             <thead>
                 <th>Название диалога</th>
+                <th>Стример</th>
                 <th>Дата создания</th>
                 <th>Ссылка для скачивания</th>
                 <th>Ссылка на сайт</th>
@@ -50,6 +51,7 @@
             {% for field in DATA %}
             <tr>
                 <td>{{ field.title|default_if_none:"" }}</td>
+                <td>{{ field.streamer|default_if_none:"" }}</td>
                 <td>{{ field.createdAt|default_if_none:"" }}</td>
                 <td><a href='{{ field.logUrl|default_if_none:"" }}'>{{ field.logUrl|default_if_none:"" }}</a></td>
                 <td><a href='{{ field.websiteUrl|default_if_none:"" }}'>{{ field.websiteUrl|default_if_none:"" }}</a></td>
@@ -261,7 +263,8 @@
                 let ws_data = []
                 // DEFINE FIELDS HERE
                 ws_data[0] = [
-                    "Название диалога", 
+                    "Название диалога",
+                    "Стример", 
                     "Дата создания", 
                     "Ссылка для скачивания", 
                     "Ссылка на сайт", 
@@ -274,6 +277,7 @@
                 for (let i = 0; i < Object.keys(data).length; i++) {
                     ws_data[i+1] = [
                         data[i].title,
+                        data[i].streamer,
                         data[i].createdAt,
                         data[i].logUrl,
                         data[i].websiteUrl,

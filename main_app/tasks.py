@@ -26,6 +26,7 @@ def update_info() -> None:
     streamers = requests.get(workers_list_url, headers=headers).json()
     for streamer_index in range(0, len(streamers)):
         streamer = streamers[streamer_index]['_id']
+        streamer_name = f"{streamers[streamer_index]['firstName']} {streamers[streamer_index]['lastName']}"
         stats_url = f'https://serverru.eyezon.online/api/button/{button_id}/worker/{streamer}/stat?from={date}&to={date}&limit=100&offset=0'
         stats = requests.get(
             stats_url,
@@ -38,6 +39,7 @@ def update_info() -> None:
                 duration = time.strftime('%H:%M:%S', time.gmtime(duration / 1000.0))
                 models.DataModel.objects.create(
                     title=dialog['title'],
+                    streamer=streamer_name,
                     createdAt=dialog['createdAt'],
                     logUrl=dialog['logUrl'],
                     websiteUrl=dialog['websiteUrl'],

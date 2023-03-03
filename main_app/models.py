@@ -5,6 +5,7 @@ class DataModel(models.Model):
     """  """
     
     title = models.CharField(max_length=512, null=True, blank=True)
+    streamer = models.CharField(max_length=512, null=True, blank=True)
     createdAt = models.CharField(max_length=512, null=True, blank=True, unique=True)
     logUrl = models.CharField(max_length=512, null=True, blank=True)
     websiteUrl = models.CharField(max_length=512, null=True, blank=True)

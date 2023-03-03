@@ -17,7 +17,6 @@ from main_app import models, serializers
 
 def get_all_data():
     data = models.DataModel.objects.all()
-    print(f'Objects: {data.count()}')
     return data
 
 
@@ -49,6 +48,7 @@ class GetDataViewSet(viewsets.ModelViewSet):
         if request.data['file']:
             names = [
                 "Название диалога", 
+                "Стример",
                 "Дата создания", 
                 "Ссылка для скачивания", 
                 "Ссылка на сайт", 
@@ -65,12 +65,13 @@ class GetDataViewSet(viewsets.ModelViewSet):
                     models.DataModel.objects.create(
                         title=file[row][0],
                         createdAt=file[row][1],
-                        logUrl=file[row][2],
-                        websiteUrl=file[row][3],
-                        rating=file[row][4],
-                        streamsNumber=file[row][5],
-                        isStreamMade=file[row][6],
-                        duration=file[row][7],
+                        streamer=file[row][2],
+                        logUrl=file[row][3],
+                        websiteUrl=file[row][4],
+                        rating=file[row][5],
+                        streamsNumber=file[row][6],
+                        isStreamMade=file[row][7],
+                        duration=file[row][8],
                     )
                 except Exception as e:
                     print(f'ERROR: {e}')
