@@ -64,8 +64,8 @@ class GetDataViewSet(viewsets.ModelViewSet):
                 try:
                     models.DataModel.objects.create(
                         title=file[row][0],
-                        createdAt=file[row][1],
-                        streamer=file[row][2],
+                        streamer=file[row][1],
+                        createdAt=file[row][2],
                         logUrl=file[row][3],
                         websiteUrl=file[row][4],
                         rating=file[row][5],
